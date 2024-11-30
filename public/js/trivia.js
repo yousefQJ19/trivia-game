@@ -5,210 +5,210 @@ const playerName = urlSearchParams.get('playerName');
 const room = urlSearchParams.get('room');
 
 /*
-  WELCOME HEADER
+    WELCOME HEADER
 */
 const mainHeadingTemplate = document.querySelector('#main-heading-template')
-  .innerHTML;
+    .innerHTML;
 const welcomeHeadingHTML = Handlebars.compile(mainHeadingTemplate);
 document.querySelector('main').insertAdjacentHTML(
-  'afterBegin',
-  welcomeHeadingHTML({
-    playerName,
-  })
+    'afterBegin',
+    welcomeHeadingHTML({
+        playerName,
+    })
 );
 
 /*
-  SOCKETIO JOIN EVENT EMITTER
+    SOCKETIO JOIN EVENT EMITTER
 */
 socket.emit('join', { playerName, room }, error => {
-  if (error) {
-    alert(error);
-    location.href = '/';
-  }
+    if (error) {
+        alert(error);
+        location.href = '/';
+    }
 });
 
 /*
-  SOCKETIO MESSAGE EVENT LISTENER
+    SOCKETIO MESSAGE EVENT LISTENER
 */
 socket.on('message', ({ playerName, text, createdAt }) => {
-  const chatMessages = document.querySelector('.chat__messages');
-  const messageTemplate = document.querySelector('#message-template').innerHTML;
-  const template = Handlebars.compile(messageTemplate);
+    const chatMessages = document.querySelector('.chat__messages');
+    const messageTemplate = document.querySelector('#message-template').innerHTML;
+    const template = Handlebars.compile(messageTemplate);
 
-  const html = template({
-    playerName,
-    text,
-    createdAt: moment(createdAt).format('h:mm a'),
-  });
-  chatMessages.insertAdjacentHTML('afterBegin', html);
+    const html = template({
+        playerName,
+        text,
+        createdAt: moment(createdAt).format('h:mm a'),
+    });
+    chatMessages.insertAdjacentHTML('afterBegin', html);
 });
 
 /*
-  SOCKETIO ROOM EVENT LISTENER
+    SOCKETIO ROOM EVENT LISTENER
 */
 socket.on('room', ({ room, players }) => {
-  const gameInfo = document.querySelector('.game-info');
-  const sidebarTemplate = document.querySelector('#game-info-template')
-    .innerHTML;
+    const gameInfo = document.querySelector('.game-info');
+    const sidebarTemplate = document.querySelector('#game-info-template')
+        .innerHTML;
 
-  const template = Handlebars.compile(sidebarTemplate);
+    const template = Handlebars.compile(sidebarTemplate);
 
-  const html = template({
-    room,
-    players,
-  });
+    const html = template({
+        room,
+        players,
+    });
 
-  gameInfo.innerHTML = html;
+    gameInfo.innerHTML = html;
 });
 
 /*
-  SOCKETIO QUESTION EVENT LISTENER
+    SOCKETIO QUESTION EVENT LISTENER
 */
 const decodeHTMLEntities = text => {
-  const textArea = document.createElement('textarea');
-  textArea.innerHTML = text;
-  return textArea.value;
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
 };
 
 socket.on('question', ({ answers, createdAt, playerName, question }) => {
-  const triviaForm = document.querySelector('.trivia__form');
-  const triviaQuestion = document.querySelector('.trivia__question');
-  const triviaAnswers = document.querySelector('.trivia__answers');
-  const triviaQuestionButton = document.querySelector('.trivia__question-btn');
-  const triviaFormSubmitButton = triviaForm.querySelector(
-    '.trivia__submit-btn'
-  );
+    const triviaForm = document.querySelector('.trivia__form');
+    const triviaQuestion = document.querySelector('.trivia__question');
+    const triviaAnswers = document.querySelector('.trivia__answers');
+    const triviaQuestionButton = document.querySelector('.trivia__question-btn');
+    const triviaFormSubmitButton = triviaForm.querySelector(
+        '.trivia__submit-btn'
+    );
 
-  const questionTemplate = document.querySelector('#trivia-question-template')
-    .innerHTML;
+    const questionTemplate = document.querySelector('#trivia-question-template')
+        .innerHTML;
 
-  triviaQuestion.innerHTML = '';
-  triviaAnswers.innerHTML = '';
+    triviaQuestion.innerHTML = '';
+    triviaAnswers.innerHTML = '';
 
-  triviaQuestionButton.setAttribute('disabled', 'disabled');
-  triviaFormSubmitButton.removeAttribute('disabled');
+    triviaQuestionButton.setAttribute('disabled', 'disabled');
+    triviaFormSubmitButton.removeAttribute('disabled');
 
-  const template = Handlebars.compile(questionTemplate);
+    const template = Handlebars.compile(questionTemplate);
 
-  const html = template({
-    playerName,
-    createdAt: moment(createdAt).format('h:mm a'),
-    question: decodeHTMLEntities(question),
-    answers,
-  });
+    const html = template({
+        playerName,
+        createdAt: moment(createdAt).format('h:mm a'),
+        question: decodeHTMLEntities(question),
+        answers,
+    });
 
-  triviaQuestion.insertAdjacentHTML('beforeend', html);
+    triviaQuestion.insertAdjacentHTML('beforeend', html);
 });
 
 /*
-  SOCKETIO ANSWER EVENT LISTENER
+    SOCKETIO ANSWER EVENT LISTENER
 */
 
 socket.on('answer', ({ playerName, isRoundOver, createdAt, text }) => {
-  const triviaAnswers = document.querySelector('.trivia__answers');
-  const triviaRevealAnswerButton = document.querySelector(
-    '.trivia__answer-btn'
-  );
+    const triviaAnswers = document.querySelector('.trivia__answers');
+    const triviaRevealAnswerButton = document.querySelector(
+        '.trivia__answer-btn'
+    );
 
-  const messageTemplate = document.querySelector('#message-template').innerHTML;
+    const messageTemplate = document.querySelector('#message-template').innerHTML;
 
-  const template = Handlebars.compile(messageTemplate);
+    const template = Handlebars.compile(messageTemplate);
 
-  const html = template({
-    playerName: playerName,
-    text,
-    createdAt: moment(createdAt).format('h:mm a'),
-  });
+    const html = template({
+        playerName: playerName,
+        text,
+        createdAt: moment(createdAt).format('h:mm a'),
+    });
 
-  triviaAnswers.insertAdjacentHTML('afterBegin', html);
+    triviaAnswers.insertAdjacentHTML('afterBegin', html);
 
-  if (isRoundOver) {
-    triviaRevealAnswerButton.removeAttribute('disabled');
-  }
+    if (isRoundOver) {
+        triviaRevealAnswerButton.removeAttribute('disabled');
+    }
 });
 
 /*
-  SOCKETIO CORRECTANSWER EVENT LISTENER
+    SOCKETIO CORRECTANSWER EVENT LISTENER
 */
 socket.on('correctAnswer', ({ text }) => {
-  const triviaAnswers = document.querySelector('.trivia__answers');
-  const triviaQuestionButton = document.querySelector('.trivia__question-btn');
-  const triviaRevealAnswerButton = document.querySelector(
-    '.trivia__answer-btn'
-  );
-  const triviaFormSubmitButton = triviaForm.querySelector(
-    '.trivia__submit-btn'
-  );
+    const triviaAnswers = document.querySelector('.trivia__answers');
+    const triviaQuestionButton = document.querySelector('.trivia__question-btn');
+    const triviaRevealAnswerButton = document.querySelector(
+        '.trivia__answer-btn'
+    );
+    const triviaFormSubmitButton = triviaForm.querySelector(
+        '.trivia__submit-btn'
+    );
 
-  const answerTemplate = document.querySelector('#trivia-answer-template')
-    .innerHTML;
-  const template = Handlebars.compile(answerTemplate);
+    const answerTemplate = document.querySelector('#trivia-answer-template')
+        .innerHTML;
+    const template = Handlebars.compile(answerTemplate);
 
-  const html = template({
-    text,
-  });
+    const html = template({
+        text,
+    });
 
-  triviaAnswers.insertAdjacentHTML('afterBegin', html);
+    triviaAnswers.insertAdjacentHTML('afterBegin', html);
 
-  triviaQuestionButton.removeAttribute('disabled');
-  triviaRevealAnswerButton.setAttribute('disabled', 'disabled');
-  triviaFormSubmitButton.removeAttribute('disabled');
+    triviaQuestionButton.removeAttribute('disabled');
+    triviaRevealAnswerButton.setAttribute('disabled', 'disabled');
+    triviaFormSubmitButton.removeAttribute('disabled');
 });
 
 /*
-  CHAT SECTION
+    CHAT SECTION
 */
 const chatForm = document.querySelector('.chat__form');
 
 chatForm.addEventListener('submit', event => {
-  event.preventDefault();
+    event.preventDefault();
 
-  const chatFormInput = chatForm.querySelector('.chat__message');
-  const chatFormButton = chatForm.querySelector('.chat__submit-btn');
+    const chatFormInput = chatForm.querySelector('.chat__message');
+    const chatFormButton = chatForm.querySelector('.chat__submit-btn');
 
-  chatFormButton.setAttribute('disabled', 'disabled');
+    chatFormButton.setAttribute('disabled', 'disabled');
 
-  const message = event.target.elements.message.value;
+    const message = event.target.elements.message.value;
 
-  socket.emit('sendMessage', message, error => {
-    chatFormButton.removeAttribute('disabled');
-    chatFormInput.value = '';
-    chatFormInput.focus();
+    socket.emit('sendMessage', message, error => {
+        chatFormButton.removeAttribute('disabled');
+        chatFormInput.value = '';
+        chatFormInput.focus();
 
-    if (error) return alert(error);
-  });
+        if (error) return alert(error);
+    });
 });
 
 /*
-  TRIVIA SECTION
+    TRIVIA SECTION
 */
 const triviaQuestionButton = document.querySelector('.trivia__question-btn');
 triviaQuestionButton.addEventListener('click', () => {
-  socket.emit('getQuestion', null, error => {
-    if (error) return alert(error);
-  });
+    socket.emit('getQuestion', null, error => {
+        if (error) return alert(error);
+    });
 });
 
 const triviaRevealAnswerButton = document.querySelector('.trivia__answer-btn');
 triviaRevealAnswerButton.addEventListener('click', () => {
-  socket.emit('getAnswer', null, error => {
-    if (error) return alert(error);
-  });
+    socket.emit('getAnswer', null, error => {
+        if (error) return alert(error);
+    });
 });
 
 const triviaForm = document.querySelector('.trivia__form');
 triviaForm.addEventListener('submit', event => {
-  event.preventDefault();
+    event.preventDefault();
 
-  const triviaFormSubmitButton = triviaForm.querySelector(
-    '.trivia__submit-btn'
-  );
-  const triviaFormInputAnswer = triviaForm.querySelector('.trivia__answer');
+    const triviaFormSubmitButton = triviaForm.querySelector(
+        '.trivia__submit-btn'
+    );
+    const triviaFormInputAnswer = triviaForm.querySelector('.trivia__answer');
 
-  triviaFormSubmitButton.setAttribute('disabled', 'disabled');
+    triviaFormSubmitButton.setAttribute('disabled', 'disabled');
 
-  const answer = event.target.elements.answer.value;
-  socket.emit('sendAnswer', answer, error => {
+    const answer = event.target.elements.answer.value;
+    socket.emit('sendAnswer', answer, error => {
     triviaFormInputAnswer.value = '';
     triviaFormInputAnswer.focus();
 
